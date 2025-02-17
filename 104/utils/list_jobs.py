@@ -88,6 +88,7 @@ def list_jobs(areas, index=0, all_jobs=None):
     current_area = areas[index]
     print(f"Processing area: {current_area}")
     area_jobs = list_jobs_by_area(current_area)
+    print(f"此地區職缺為：{len(area_jobs)}")
     all_jobs.extend(area_jobs)
     return list_jobs(areas, index + 1, all_jobs)
 

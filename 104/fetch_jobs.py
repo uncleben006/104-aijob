@@ -37,7 +37,9 @@ areas = [
 ]
 all_jobs = list_jobs(areas)
 # print(json.dumps(all_jobs, ensure_ascii=False, indent=2))
+
 if all_jobs:
+    collection.delete_many({})
     result = collection.insert_many(all_jobs)
     print(f"成功插入 {len(result.inserted_ids)} 筆文件到 MongoDB。")
 else:
