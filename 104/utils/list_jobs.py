@@ -68,6 +68,10 @@ def list_jobs_by_area(area, page=1, jobs_list=None):
     if current_page < last_page:
         return list_jobs_by_area(area, current_page + 1, jobs_list)
     else:
+        # 當所有分頁取回後，比對實際取得的工作數量與 metadata 中的 total
+        expected_total = pagination.get("total")
+        if expected_total is not None and len(jobs_list) < expected_total:
+            print(f"Wrong num for area {area}: collected {len(jobs_list)} but total {expected_total}.")
         return jobs_list
 
 def list_jobs(areas, index=0, all_jobs=None):
