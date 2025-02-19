@@ -1,24 +1,11 @@
-import os
+import streamlit as st
 import re
-import json
-import time
-import random
-from dotenv import load_dotenv
-from pymongo import MongoClient
 
-# 載入 .env 檔案中的環境變數
-load_dotenv()
+# 自建模組
+from utils import connect_db
 
-# 讀取環境變數
-MONGO_PORT = os.getenv("MONGO_PORT", "27017")
-MONGO_INITDB_ROOT_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME", "root")
-MONGO_INITDB_ROOT_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD", "root")
-
-# 建立 MongoDB 連線字串（假設 MongoDB 在本機運行）
-uri = f"mongodb://{MONGO_INITDB_ROOT_USERNAME}:{MONGO_INITDB_ROOT_PASSWORD}@localhost:{MONGO_PORT}"
-client = MongoClient(uri)
-
-# 選擇要使用的資料庫與集合
+# 連線資料庫、選擇要使用的資料庫與集合
+client = connect_db()
 db = client["104"]
 collection = db["jobs_detail"]
 
@@ -104,10 +91,10 @@ pipeline = [
     },
     {
         "$match": {
-            "$and": [
-                {"job": {"$not": re.compile("企劃|業務")}},
-                {"other": {"$not": re.compile("企劃|業務")}},
-                {"detail": {"$not": re.compile("企劃|業務")}}
+            "$or": [
+                {"job": re.compile("企劃|業務")},
+                {"other": re.compile("企劃|業務")},
+                {"detail": re.compile("企劃|業務")}
             ]
         }
     },
@@ -117,11 +104,16 @@ pipeline = [
 ]
 
 # 執行 Aggregation Pipeline
-results = collection.aggregate(pipeline)
+data = list(collection.aggregate(pipeline))
 
-for job_detail in results:
-    # print(job_detail["_id"])
-    print(job_detail)
-# 將取得的資料轉成 JSON 格式的陣列並印出
-# print(json.dumps(jobs_detail_data, ensure_ascii=False, indent=2))
+# 使用 Streamlit 建立網頁介面
+st.title("MongoDB 資料檢視器")
+st.write("以下是篩選及排序後的資料：")
+st.dataframe(data)  # 使用 dataframe 呈現資料，也可以用 st.write(data)
+
+# for job_detail in results:
+#     # print(job_detail["_id"])
+#     print(job_detail)
+# # 將取得的資料轉成 JSON 格式的陣列並印出
+# # print(json.dumps(jobs_detail_data, ensure_ascii=False, indent=2))
 

@@ -92,6 +92,7 @@ def list_jobs(areas, index=0, all_jobs=None):
     all_jobs.extend(area_jobs)
     return list_jobs(areas, index + 1, all_jobs)
 
+# 使用範例
 if __name__ == "__main__":
     # 將各區域代碼整理成陣列（可根據需求調整）
     areas = [

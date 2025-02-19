@@ -1,4 +1,3 @@
-import json
 import time
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -43,7 +42,7 @@ def multi_thread_get_jobs(url_list, max_workers=5):
             results[url] = future.result()
     return results
 
-# 測試用範例
+# 使用範例
 if __name__ == '__main__':
     url_list = [
         "https://www.104.com.tw/job/ajax/content/7n189"
