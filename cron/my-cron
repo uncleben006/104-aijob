@@ -1,0 +1,8 @@
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+# 每天 07:00, 19:00 執行 fetch_jobs.py 與 fetch_jobs_detail.py
+
+0 7 * * * cd /app && python 104/fetch_jobs.py >> /var/log/cron/$(date +\%Y\%m\%d\%H)-fetch_jobs_cron.log 2>&1
+0 7 * * * cd /app && python 104/fetch_jobs_detail.py >> /var/log/cron/$(date +\%Y\%m\%d\%H)-fetch_jobs_detail_cron.log 2>&1
+
+0 19 * * * cd /app && python 104/fetch_jobs.py >> /var/log/cron/$(date +\%Y\%m\%d\%H)-fetch_jobs_cron.log 2>&1
+0 19 * * * cd /app && python 104/fetch_jobs_detail.py >> /var/log/cron/$(date +\%Y\%m\%d\%H)-fetch_jobs_detail_cron.log 2>&1

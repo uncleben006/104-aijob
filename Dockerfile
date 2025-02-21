@@ -18,15 +18,12 @@ RUN poetry config virtualenvs.create false && poetry install --no-root
 COPY . .
 
 # 複製 crontab 設定檔
-COPY my-cron /etc/cron.d/my-cron
+COPY cron/my-cron /etc/cron.d/my-cron
 
 # 補上缺失的換行符、修改權限並載入 crontab
 RUN sed -i -e '$a\' /etc/cron.d/my-cron && \
     chmod 0644 /etc/cron.d/my-cron && \
     crontab /etc/cron.d/my-cron
-
-# 建立 log 檔以供 cron 輸出記錄
-RUN touch /var/log/cron.log
 
 # 前景執行 cron
 CMD ["cron", "-f"]

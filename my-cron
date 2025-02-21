@@ -1,7 +1,0 @@
-# 每天 07:00, 19:00 執行 fetch_jobs.py 與 fetch_jobs_detail.py
-
-0 7 * * * root cd /app && python 104/fetch_jobs.py >> /var/log/cron.log 2>&1
-0 7 * * * root cd /app && python 104/fetch_jobs_detail.py >> /var/log/cron.log 2>&1
-
-0 19 * * * root cd /app && python 104/fetch_jobs.py >> /var/log/cron.log 2>&1
-0 19 * * * root cd /app && python 104/fetch_jobs_detail.py >> /var/log/cron.log 2>&1

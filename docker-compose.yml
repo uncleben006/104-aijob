@@ -20,6 +20,9 @@ services:
       - MONGO_PORT=${MONGO_PORT}
       - MONGO_INITDB_ROOT_USERNAME=${MONGO_INITDB_ROOT_USERNAME}
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
+    volumes:
+      - ./104:/app/104
+      - ./cron/logs:/var/log/cron
     depends_on:
       - mongodb
 
