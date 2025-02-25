@@ -10,38 +10,33 @@ db = client["104"]
 jobs_collection = db["jobs"]
 detail_collection = db["jobs_detail"]
 
-# 取得所有文件，並從每份文件中取出 job id 與組成 ajax_url
+# 取得爬下的所有職缺列表
 documents = jobs_collection.find({})
-job_urls = []
-for doc in documents:
-    if "link" in doc and "job" in doc["link"]:
-        job_link = doc["link"]["job"]
-        job_id = job_link.rstrip("/").split("/")[-1]
-        ajax_url = f"https://www.104.com.tw/job/ajax/content/{job_id}"
-        job_urls.append(ajax_url)
+job_urls = [doc["_id"] for doc in documents]
 
-# 定義每一批次要處理的數量，例如每批處理 50 個 URL
+# 從職缺詳情中刪除已經關閉的職缺資料
+result = detail_collection.delete_many({"_id": {"$nin": job_urls}})
+print(f"刪除 {result.deleted_count} 筆已關閉的職缺詳情")
+
+# 找到未爬取的職缺 URL
+fetched_urls = [doc["_id"] for doc in detail_collection.find({}, {"_id": 1})]
+remaining_urls = set(job_urls) - set(fetched_urls)
+
+# remaining_urls 是頁面 URL，要轉成 ajax URL 來爬取職缺詳情
+job_ajax_urls = []
+for url in remaining_urls:
+    job_id = url.rstrip("/").split("/")[-1]
+    ajax_url = f"https://www.104.com.tw/job/ajax/content/{job_id}"
+    job_ajax_urls.append(ajax_url)
+
+# 分批爬取尚未爬取過的 job_ajax_urls
 batch_size = 50
+for i in range(0, len(job_ajax_urls), batch_size):
+    batch_urls = job_ajax_urls[i:i + batch_size]
+    print(f"處理批次 {(i // batch_size) + 1}/{(len(job_ajax_urls) + batch_size - 1) // batch_size}")
 
-# 分批次處理 job_urls
-for i in range(0, len(job_urls), batch_size):
-    batch_urls = job_urls[i:i + batch_size]
-
-    # 先過濾掉已存在於 MongoDB 的 URL
-    filtered_urls = []
-    for url in batch_urls:
-        if not detail_collection.find_one({"_id": url}):
-            filtered_urls.append(url)
-
-    # 如果過濾後的列表為空，則跳過本批次
-    if not filtered_urls:
-        print(f"批次 {(i // batch_size) + 1}/{(len(job_urls) + batch_size - 1) // batch_size} 中所有職缺資料皆已存在，跳過此批次")
-        continue
-
-    print(f"處理批次 {(i // batch_size) + 1}/{(len(job_urls) + batch_size - 1) // batch_size}")
-
-    # 使用 multi_thread_get_jobs 處理這一批次，max_workers 設為過濾後的數量
-    data_results = multi_thread_get_jobs(filtered_urls, max_workers=len(filtered_urls))
+    # 使用 multi_thread_get_jobs 處理這一批次
+    data_results = multi_thread_get_jobs(batch_urls)
 
     # 將每個 URL 與對應的資料存入 MongoDB，並以 URL 作為主鍵 (_id)
     for url, data in data_results.items():
@@ -51,19 +46,17 @@ for i in range(0, len(job_urls), batch_size):
             print(f"解析 {url} 的 JSON 時發生錯誤：{e}")
             continue
 
+        job_detail = job_detail["data"]
         job_detail["_id"] = url
         try:
-            detail_collection.replace_one({"_id": url}, job_detail, upsert=True)
-            print(f"""儲存 / 更新 {url} 文件
-公司：{job_detail["data"]["header"]["custName"]}
-人數：{job_detail["data"]["employees"]}
-薪資：{job_detail["data"]["jobDetail"]["salary"]}
-職缺：{job_detail["data"]["header"]["jobName"]}""")
-            print("==============================================================")
+            detail_collection.insert_one(job_detail)
+            print(f"儲存 {url} 文件成功")
+            print(f"公司：{job_detail['header']['custName']}")
+            print(f"人數：{job_detail['employees']}")
+            print(f"薪資：{job_detail['jobDetail']['salary']}")
+            print(f"職缺：{job_detail['header']['jobName']}")
+            print("==============================================")
         except Exception as e:
             print(f"儲存 {url} 文件時發生錯誤：{e}")
 
-    # 批次處理完後，等待一段時間以避免過快連續請求
-    # wait = random.randint(3, 30)
-    # print(f"等待 {wait} 秒後繼續")
     time.sleep(3)

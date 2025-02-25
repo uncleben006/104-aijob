@@ -38,7 +38,8 @@ def multi_thread_get_jobs(url_list, max_workers=5):
     with ThreadPoolExecutor(max_workers=max_workers) as executor:
         future_to_url = {executor.submit(fetch_data, url): url for url in url_list}
         for future in as_completed(future_to_url):
-            url = future_to_url[future]
+            ajax_url = future_to_url[future]
+            url = "https://www.104.com.tw/job/" + ajax_url.rstrip("/").split("/")[-1]
             results[url] = future.result()
     return results
 
