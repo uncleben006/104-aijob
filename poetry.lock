@@ -929,6 +929,18 @@ files = [
 six = ">=1.5"
 
 [[package]]
+name = "python-decouple"
+version = "3.8"
+description = "Strict separation of settings from code."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "python-decouple-3.8.tar.gz", hash = "sha256:ba6e2657d4f376ecc46f77a3a615e058d93ba5e465c01bbe57289bfb7cce680f"},
+    {file = "python_decouple-3.8-py3-none-any.whl", hash = "sha256:d0d45340815b25f4de59c974b855bb38d03151d81b037d9e3f463b0c9f8cbd66"},
+]
+
+[[package]]
 name = "python-dotenv"
 version = "1.0.1"
 description = "Read key-value pairs from a .env file and set them as environment variables"
@@ -1186,6 +1198,23 @@ watchdog = {version = ">=2.1.5,<7", markers = "platform_system != \"Darwin\""}
 snowflake = ["snowflake-connector-python (>=3.3.0)", "snowflake-snowpark-python[modin] (>=1.17.0)"]
 
 [[package]]
+name = "streamlit-aggrid"
+version = "1.1.0"
+description = "Streamlit component implementation of ag-grid"
+optional = false
+python-versions = ">=3.10"
+groups = ["main"]
+files = [
+    {file = "streamlit_aggrid-1.1.0-py3-none-any.whl", hash = "sha256:216b3880a325f1e900b3a43d840503a33031e9ef9d94178c2d22628ada17f946"},
+    {file = "streamlit_aggrid-1.1.0.tar.gz", hash = "sha256:4541d135de98acc5796676bc1ed9564612ef6a88ec0cd99a0875f20c0f1fecc8"},
+]
+
+[package.dependencies]
+pandas = ">=1.4.0"
+python-decouple = "*"
+streamlit = ">=1.2"
+
+[[package]]
 name = "tenacity"
 version = "9.0.0"
 description = "Retry code until it succeeds"
@@ -1345,4 +1374,4 @@ watchmedo = ["PyYAML (>=3.10)"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.13"
-content-hash = "db0b3317167a30facd972ab5a6bb4e1e7f8411482b60583d2cefb1027432c46b"
+content-hash = "7c6995a14ab8bf72ce520b09ea29d5bf33c27860356eb02efe1d66f2b2734cfe"
