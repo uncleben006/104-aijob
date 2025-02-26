@@ -18,6 +18,7 @@ def display_job_grid(data, title):
         col1, col2, col3 = st.columns([3, 2, 1])
         with col1:
             st.title(title)
+            st.write(f"共 {len(filtered_data)} 筆資料")
         with col2:
             search_query = st.text_input("搜尋(逗號分隔)", "")
         with col3:
@@ -33,6 +34,7 @@ def display_job_grid(data, title):
             ), axis=1
         )
         filtered_data = filtered_data[mask]
+        st.write(f"搜尋後剩餘 {len(filtered_data)} 筆資料")
 
     # 再根據排除關鍵字進行過濾
     if exclude_query:
@@ -44,6 +46,7 @@ def display_job_grid(data, title):
             ), axis=1
         )
         filtered_data = filtered_data[mask_exclude]
+        st.write(f"排除後剩餘 {len(filtered_data)} 筆資料")
 
     # 建立完整的 columnDefs
     columns = []
