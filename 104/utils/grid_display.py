@@ -82,31 +82,19 @@ def display_job_grid(data, title):
     columns = []
     for col in filtered_data.columns:
         if col in ["other", "detail"]:
-            columns.append({
-                "field": col,
-                "wrapText": True,
-                "minWidth": 350,
-                "cellStyle": {"overflow": "auto"},
+            columns.append({ 
+                "field": col, "wrapText": True, 
+                "minWidth": 350, "cellStyle": {"overflow": "auto"}
             })
-        elif col == "link":
-            columns.append({
-                "field": col,
-                "wrapText": True,
-                "minWidth": 220,
-                "sortable": False
-            })
-        elif col in ["job", "company"]:
-            columns.append({
-                "field": col,
-                "wrapText": True,
-                "autoHeight": True,
-                "minWidth": 220
+        elif col in ["link"]:
+            columns.append({ 
+                "field": col, "wrapText": True,
+                "autoHeight": True, "minWidth": 220
             })
         else:
-            columns.append({
-                "field": col,
-                "wrapText": True,
-                "minWidth": 150
+            columns.append({ 
+                "field": col, "wrapText": True, 
+                "minWidth": 150, "cellStyle": {"overflow": "auto"}
             })
 
     grid_options = {
