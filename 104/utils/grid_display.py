@@ -1,7 +1,11 @@
+import re
+import pandas as pd
 import streamlit as st
 from st_aggrid import AgGrid
-import pandas as pd
-import re
+from .connect_db import connect_db
+import datetime
+import hashlib
+import json
 
 def display_job_grid(data, title):
     """
@@ -20,7 +24,18 @@ def display_job_grid(data, title):
     # 創建一個容器來放置標題
     title_container = st.container()
     
-    with st.container(): 
+    # 隱藏提交按鈕
+    st.markdown("""
+    <style>
+    div[data-testid="stFormSubmitButton"] {
+        visibility: hidden;
+        height: 0px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # 使用表單來包含所有搜尋欄位
+    with st.form(key="search_form"):
         col1, col2, col3, col4 = st.columns([1, 1, 1, 1])
         with col1:
             search_fields = st.multiselect(
@@ -38,6 +53,8 @@ def display_job_grid(data, title):
             )
         with col4:
             exclude_query = st.text_input("排除(逗號分隔)", "")
+
+        submit = st.form_submit_button("搜尋")
 
     # 先根據包含關鍵字篩選
     if search_query and search_fields:
@@ -75,8 +92,13 @@ def display_job_grid(data, title):
     
     # 在標題容器中顯示標題和數據計數
     with title_container:
-        st.html(f"<div><span style='font-size: 2em; font-weight: bold;'>{title}</span>\
-        <span style='margin-left: 1em;'>{status_text}</span></div><hr>")
+        st.html(f"<div style='display: flex; justify-content: space-between; align-items: center;'>\
+            <div><span style='font-size: 1.5em; font-weight: bold;'>{title}</span>\
+            <span style='font-size: 0.75em; margin-left: 1em;'>{status_text}</span></div>\
+            <div><span style='font-size: 0.75em; margin-left: 1em;'>搜尋欄位：{search_fields}、搜尋內容：{search_query}</span>\
+            <span style='font-size: 0.75em; margin-left: 1em;'>排除欄位：{exclude_fields}、排除內容：{exclude_query}</span></div>\
+            </div><hr>")
+        
 
     # 建立完整的 columnDefs
     columns = []
@@ -110,6 +132,42 @@ def display_job_grid(data, title):
         },
         "domLayout": "normal"
     }
+
+    if submit:
+        # 連線資料庫，選擇使用的資料庫與集合
+        client = connect_db()
+        db = client["104"]
+        collection = db["search_history"]
+        
+        # 創建搜尋記錄
+        search_record = {
+            "grid_title": title,
+            "search_fields": search_fields,
+            "search_query": search_query,
+            "exclude_fields": exclude_fields,
+            "exclude_query": exclude_query,
+            "timestamp": datetime.datetime.now(),
+            "result_count": len(filtered_data)
+        }
+        
+        # 生成唯一ID 並檢查是否有搜過同樣內容
+        record_str = json.dumps(
+            {k: v for k, v in search_record.items() if k != "timestamp"}, 
+            sort_keys=True
+        )
+        search_id = hashlib.md5(record_str.encode()).hexdigest()
+        search_record["_id"] = search_id
+        existing_record = collection.find_one({"_id": search_id})
+        if not existing_record:
+            collection.insert_one(search_record)
+            with title_container: st.success(f"已儲存搜尋記錄")
+        else:
+            collection.update_one(
+                {"_id": search_id},
+                {"$set": {"timestamp": datetime.datetime.now()}}
+            )
+            with title_container:st.info(f"已更新搜尋記錄時間戳")
+
 
     return AgGrid(filtered_data, gridOptions=grid_options, height=750)
 
