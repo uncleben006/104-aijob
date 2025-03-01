@@ -10,11 +10,15 @@ def connect_db():
     連線到 MongoDB 資料庫
     """
 
+    ENV = os.getenv("ENV", "dev")
     MONGO_HOST = os.getenv("MONGO_HOST", "localhost")
     MONGO_PORT = os.getenv("MONGO_PORT", "27017")
     MONGO_INITDB_ROOT_USERNAME = os.getenv("MONGO_INITDB_ROOT_USERNAME", "root")
     MONGO_INITDB_ROOT_PASSWORD = os.getenv("MONGO_INITDB_ROOT_PASSWORD", "root")
-    uri = f"mongodb://{MONGO_INITDB_ROOT_USERNAME}:{MONGO_INITDB_ROOT_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}"
+    if ENV == "local":
+        uri = f"mongodb://{MONGO_INITDB_ROOT_USERNAME}:{MONGO_INITDB_ROOT_PASSWORD}@{MONGO_HOST}:{MONGO_PORT}"
+    else:
+        uri = f"mongodb+srv://{MONGO_INITDB_ROOT_USERNAME}:{MONGO_INITDB_ROOT_PASSWORD}@{MONGO_HOST}"
     return MongoClient(uri)
 
 def jobs_detail_project():
