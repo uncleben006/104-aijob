@@ -14,7 +14,7 @@ sort = { '$sort': {'company': -1} }
 pipeline = [project, condition, sort]
 
 # 執行 Aggregation Pipeline
-filtered_data = pd.DataFrame(pd.DataFrame(collection.aggregate(pipeline))).copy()
+filtered_data = pd.DataFrame(pd.DataFrame(collection.aggregate(pipeline, allowDiskUse=True))).copy()
 
 # 使用 streamlit run 顯示資料
 display_job_grid(filtered_data, title="AI相關職缺")
