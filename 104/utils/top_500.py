@@ -29,7 +29,7 @@ def top_500(csv_filename="104/taiwan_500.csv"):
 
     # record-by-record 交叉比對的方式
     matched_jobs = []
-    for doc in collection.aggregate(pipeline):
+    for doc in collection.aggregate(pipeline, allowDiskUse=True):
         cust_name = doc["company"]
         # 檢查是否有任一個註冊名稱存在於 cust_name 中
         if any(registered_name in cust_name for registered_name in company_names):
