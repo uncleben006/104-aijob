@@ -9,4 +9,4 @@ top_500_company_jobs = top_500(csv_filename)
 filtered_data = pd.DataFrame(top_500_company_jobs).copy()
 
 # 使用 streamlit run 顯示資料
-display_job_grid(filtered_data, title="台灣 500 大公司職缺")
+display_job_grid(filtered_data, title="前500公司職缺")

@@ -17,4 +17,4 @@ pipeline = [project, condition, sort]
 filtered_data = pd.DataFrame(pd.DataFrame(collection.aggregate(pipeline))).copy()
 
 # 使用 streamlit run 顯示資料
-display_job_grid(filtered_data, title="所有職缺資料")
+display_job_grid(filtered_data, title="AI相關職缺")
