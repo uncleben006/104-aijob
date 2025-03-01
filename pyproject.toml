@@ -6,7 +6,7 @@ authors = [
     {name = "uncleben006",email = "uncleben006@gmail.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.12"
 dependencies = [
     "requests (>=2.32.3,<3.0.0)",
     "pymongo (>=4.11.1,<5.0.0)",
