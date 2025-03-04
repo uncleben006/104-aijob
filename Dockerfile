@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.12-slim
 
 # 安裝 cron 與其他系統套件
 RUN apt-get update && apt-get install -y cron
@@ -25,5 +25,9 @@ RUN sed -i -e '$a\' /etc/cron.d/my-cron && \
     chmod 0644 /etc/cron.d/my-cron && \
     crontab /etc/cron.d/my-cron
 
-# 前景執行 cron
-CMD ["cron", "-f"]
+# 複製 entrypoint.sh 並給予執行權限
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# 以 entrypoint.sh 當作 container 的啟動命令
+CMD ["/app/entrypoint.sh"]

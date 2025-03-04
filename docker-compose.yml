@@ -11,9 +11,9 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  scheduler:
+  streamlit:
     build: .
-    container_name: "scheduler-service"
+    container_name: "streamlit"
     restart: always
     environment:
       - MONGO_HOST=mongodb
@@ -22,7 +22,11 @@ services:
       - MONGO_INITDB_ROOT_PASSWORD=${MONGO_INITDB_ROOT_PASSWORD}
     volumes:
       - ./104:/app/104
+      - ./.env:/app/.env
       - ./cron/logs:/var/log/cron
+    ports:
+      - "8501:8501"
+      - "8502:8502"
     depends_on:
       - mongodb
 
