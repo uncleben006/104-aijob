@@ -1,4 +1,3 @@
-import re
 import pandas as pd
 from utils import connect_db, jobs_detail_project, display_job_grid, jobs_condition
 

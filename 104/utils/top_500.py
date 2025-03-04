@@ -1,5 +1,4 @@
 import csv
-import re
 from .connect_db import connect_db, jobs_detail_project, jobs_condition
 
 def top_500(csv_filename="104/taiwan_500.csv"):

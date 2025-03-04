@@ -1,3 +1,4 @@
+import re
 import os
 from dotenv import load_dotenv
 from pymongo import MongoClient
@@ -216,5 +217,5 @@ def jobs_detail_project():
 
 def jobs_condition():
     return { '$match': {'job': { '$not': 
-        re.compile(r"企劃|業務|助理|PM|全端|行銷|教育|人資|HR|繪圖|Java|PHP|行政|專員|經理|主管|會計|Test|QA|前端|Vue") 
-    } } } 
+        re.compile(r"企劃|業務|行銷|教育|人資|助理|主任|行政|專員|經理|主管|會計|繪圖|UI|UX|HR|PM|Java|PHP|Vue|Golang|Test|QA|全端|前端|建設|多媒體|中古車|店長|客服|幹部") 
+    }, 'industry': { '$not': re.compile(r"餐飲業|餐館業|殯葬服務業|建築工程業|飲料製造|食品") } } }
