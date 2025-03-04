@@ -217,6 +217,11 @@ def display_job_grid(data, title):
     }
 
     if submit:
+
+        # 若搜尋欄位和排除欄位都為空，則不做紀錄
+        if not search_query and not exclude_query:
+            st.rerun()
+
         # 創建搜尋記錄
         search_record = {
             "grid_title": title,
