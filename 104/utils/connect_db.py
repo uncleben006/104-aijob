@@ -213,3 +213,8 @@ def jobs_detail_project():
             'detail': '$jobDetail.jobDescription'
         }
     }
+
+def jobs_condition():
+    return { '$match': {'job': { '$not': 
+        re.compile(r"企劃|業務|助理|PM|全端|行銷|教育|人資|HR|繪圖|Java|PHP|行政|專員|經理|主管|會計|Test|QA|前端|Vue") 
+    } } } 

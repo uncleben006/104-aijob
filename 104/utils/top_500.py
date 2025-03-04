@@ -1,6 +1,6 @@
 import csv
 import re
-from .connect_db import connect_db, jobs_detail_project
+from .connect_db import connect_db, jobs_detail_project, jobs_condition
 
 def top_500(csv_filename="104/taiwan_500.csv"):
     
@@ -23,7 +23,7 @@ def top_500(csv_filename="104/taiwan_500.csv"):
 
     # mongodb pipeline
     project = jobs_detail_project() # 顯示 jobs_detail 中所需欄位
-    condition = { '$match': {'job': { '$not': re.compile(r"企劃|業務") } } } # 篩除掉「企劃」與「業務」這類職務
+    condition = jobs_condition()
     sort = { '$sort': {'company': -1} }
     pipeline = [project, condition, sort]
 

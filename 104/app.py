@@ -1,6 +1,6 @@
 import re
 import pandas as pd
-from utils import connect_db, jobs_detail_project, display_job_grid
+from utils import connect_db, jobs_detail_project, display_job_grid, jobs_condition
 
 # 連線資料庫、選擇要使用的資料庫與集合
 client = connect_db()
@@ -9,7 +9,7 @@ collection = db["jobs_detail"]
 
 # mongodb pipeline
 project = jobs_detail_project() # 顯示 jobs_detail 中所需欄位
-condition = { '$match': {'job': { '$not': re.compile(r"企劃|業務|助理|PM") } } } 
+condition = jobs_condition() # 篩選掉我不想要的職務 title
 sort = { '$sort': {'company': -1} }
 pipeline = [project, condition, sort]
 
