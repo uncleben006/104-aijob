@@ -1,7 +1,9 @@
 import re
 import pandas as pd
 import streamlit as st
+# https://staggrid-examples.streamlit.app/ AgGrid document
 from st_aggrid import AgGrid
+from st_aggrid import JsCode
 from .connect_db import connect_db
 import datetime
 import hashlib
@@ -183,7 +185,23 @@ def display_job_grid(data, title):
                 <span style='font-size: 1em;'>{status_text}</span></div>")
         
 
-    # 建立完整的 columnDefs
+    # 建立完整的 columnDefs，參考 https://ag-grid.com/javascript-data-grid/cell-editing/
+    link_cell_renderer = JsCode("""
+        class LinkCellRenderer {
+            init(params) {
+                this.eGui = document.createElement('a');
+                this.eGui.innerText = params.value;
+                this.eGui.href = params.value;
+                this.eGui.target = "_blank";  // 讓連結在新分頁開啟
+                this.eGui.style.color = "blue";  // 設定超連結顏色
+                this.eGui.style.textDecoration = "underline";  // 加底線
+            }
+            getGui() {
+                return this.eGui;
+            }
+        }
+    """)
+
     columns = []
     for col in filtered_data.columns:
         if col in ["other", "detail"]:
@@ -194,7 +212,8 @@ def display_job_grid(data, title):
         elif col in ["link"]:
             columns.append({ 
                 "field": col, "wrapText": True,
-                "autoHeight": True, "minWidth": 220
+                "autoHeight": True, "minWidth": 220,
+                "cellRenderer": link_cell_renderer
             })
         else:
             columns.append({ 
@@ -252,4 +271,4 @@ def display_job_grid(data, title):
             # with title_container:st.info(f"已更新搜尋記錄時間戳")
         st.rerun()
 
-    return AgGrid(filtered_data, gridOptions=grid_options, height=750)
+    return AgGrid(filtered_data, gridOptions=grid_options, height=750, allow_unsafe_jscode=True, key='grid')
