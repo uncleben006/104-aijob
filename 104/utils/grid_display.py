@@ -161,7 +161,7 @@ def display_job_grid(data, title):
                 # 創建選擇框
                 selected_index = st.selectbox(
                     "選擇歷史記錄",
-                    options=range(len(history_list)),
+                    options=range(len(history_list))[:10], # 只保留前 10 筆
                     format_func=lambda i: f"{history_list[i]['timestamp'].strftime('%Y-%m-%d %H:%M')} -\
                         搜尋: {history_list[i]['search_query']} | \
                         排除:{history_list[i]['exclude_query']}",
