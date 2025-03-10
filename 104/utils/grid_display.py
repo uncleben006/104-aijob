@@ -9,67 +9,129 @@ import datetime
 import hashlib
 import json
 
-# 分出多個關鍵字和欄位
 def split_terms(query):
-    terms = re.split(r'[,，、]', query)
-    # terms = [re.split(r'[:：]', term.strip()) for term in terms if term.strip()]
-    return terms
+    """
+    Split the query into terms and identify operators
+    
+    Parameters:
+        query (str): The search query string
+        
+    Returns:
+        list: A list of dictionaries containing terms and their operators
+    """
+    # Check if the query contains AND or OR operators
+    has_and = "&" in query
+    has_or = "|" in query
+    
+    if has_and and has_or:
+        # If both operators are present, split by & first (AND has higher precedence)
+        and_groups = query.split("&")
+        result = []
+        
+        for and_group in and_groups:
+            # For each AND group, split by | to get OR terms
+            or_terms = and_group.split("|")
+            or_terms = [term.strip() for term in or_terms if term.strip()]
+            
+            if len(or_terms) > 1:
+                # If we have multiple OR terms in this group
+                result.append({"operator": "OR", "terms": or_terms})
+            elif len(or_terms) == 1:
+                # If we have only one term in this group
+                result.append({"operator": "SINGLE", "terms": or_terms})
+        
+        return result
+    elif has_and:
+        # If only AND operator is present
+        terms = query.split("&")
+        terms = [term.strip() for term in terms if term.strip()]
+        return [{"operator": "SINGLE", "terms": [term]} for term in terms]
+    elif has_or:
+        # If only OR operator is present
+        terms = query.split("|")
+        terms = [term.strip() for term in terms if term.strip()]
+        return [{"operator": "OR", "terms": terms}]
+    else:
+        # If no operators are present, split by traditional delimiters
+        terms = re.split(r'[,，、]', query)
+        terms = [term.strip() for term in terms if term.strip()]
+        return [{"operator": "SINGLE", "terms": [term]} for term in terms]
 
-def filter_by_keywords(data, search_terms):
+def filter_by_keywords(data, parsed_terms):
     """
-    根據關鍵字和指定欄位篩選數據
+    Filter data based on keywords and specified fields with support for AND/OR operations
     
-    參數:
-        data (pd.DataFrame): 要篩選的數據
-        search_terms (list): 搜尋關鍵字列表
+    Parameters:
+        data (pd.DataFrame): The data to filter
+        parsed_terms (list): List of dictionaries containing terms and operators
     
-    返回:
-        pd.DataFrame: 篩選後的數據
+    Returns:
+        pd.DataFrame: Filtered data
     """
-    if not search_terms:
+    if not parsed_terms:
         return data
     
-    # 對每個 search_term 建立一個遮罩
-    results = []
-    for term in search_terms:
-        term = term.strip()
-        if not term:
-            continue
-            
-        # 檢查 term 是否含有冒號
-        if re.search(r'[:：]', term):
-            # 如果有冒號，分割為欄位和搜尋詞
-            field_term = re.split(r'[:：]', term, 1)
-            field = field_term[0].strip()
-            term = field_term[1].strip()
-            
-            if field in data.columns:
-                # 檢查指定欄位是否包含搜尋詞
-                field_mask = data[field].astype(str).str.lower().str.contains(term.lower(), na=False)
-                results.append(field_mask)
-            else:
-                # 如果欄位不存在，則在所有列中搜尋
-                all_fields_mask = False
-                for col in data.columns:
-                    col_mask = data[col].astype(str).str.lower().str.contains(term.lower(), na=False)
-                    all_fields_mask = all_fields_mask | col_mask
-                results.append(all_fields_mask)
-        else:
-            # 如果沒有冒號，在所有列中搜尋
-            all_fields_mask = False
-            for col in data.columns:
-                col_mask = data[col].astype(str).str.lower().str.contains(term.lower(), na=False)
-                all_fields_mask = all_fields_mask | col_mask
-            results.append(all_fields_mask)
+    # Process all groups with AND logic between them
+    and_results = []
     
-    # 結合所有遮罩（AND 操作）
-    if results:
-        final_mask = results[0]
-        for mask in results[1:]:
+    for group in parsed_terms:
+        group_terms = group["terms"]
+        operator = group["operator"]
+        
+        if operator == "OR":
+            # Process all terms in this group with OR logic
+            or_mask = process_term(data, group_terms[0])
+            for term in group_terms[1:]:
+                or_mask = or_mask | process_term(data, term)
+            and_results.append(or_mask)
+        else:
+            # Single term, no OR logic needed
+            and_results.append(process_term(data, group_terms[0]))
+    
+    # Combine all group results with AND logic
+    if and_results:
+        final_mask = and_results[0]
+        for mask in and_results[1:]:
             final_mask = final_mask & mask
         return data[final_mask]
     else:
         return data
+
+def process_term(data, term):
+    """
+    Process a single search term
+    
+    Parameters:
+        data (pd.DataFrame): The data to search in
+        term (str): The search term
+        
+    Returns:
+        pd.Series: Boolean mask indicating matches
+    """
+    # Check if term contains field specification
+    if re.search(r'[:：]', term):
+        # Split into field and search term
+        field_term = re.split(r'[:：]', term, 1)
+        field = field_term[0].strip()
+        search_term = field_term[1].strip()
+        
+        if field in data.columns:
+            # Search in specified field
+            return data[field].astype(str).str.lower().str.contains(search_term.lower(), na=False)
+        else:
+            # If field doesn't exist, search in all columns
+            all_fields_mask = False
+            for col in data.columns:
+                col_mask = data[col].astype(str).str.lower().str.contains(search_term.lower(), na=False)
+                all_fields_mask = all_fields_mask | col_mask
+            return all_fields_mask
+    else:
+        # No field specified, search in all columns
+        all_fields_mask = False
+        for col in data.columns:
+            col_mask = data[col].astype(str).str.lower().str.contains(term.lower(), na=False)
+            all_fields_mask = all_fields_mask | col_mask
+        return all_fields_mask
 
 def display_job_grid(data, title):
     """
@@ -118,7 +180,7 @@ def display_job_grid(data, title):
         col1, col2, col3 = st.columns([5, 5, 1])
         with col1:
             search_query = st.text_input(
-                "搜尋（欄位:搜尋詞,欄位:搜尋詞,...）", 
+                "搜尋（欄位:搜尋詞&欄位:搜尋詞|欄位:搜尋詞,...）（&為AND）（|為OR）", 
                 f"{st.session_state.get('search_query', '')}"
             )
         with col2:
