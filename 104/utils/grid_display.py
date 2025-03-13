@@ -184,7 +184,7 @@ def display_job_grid(data, title):
                 f"{st.session_state.get('search_query', '')}"
             )
         with col2:
-            history = collection.find({"grid_title": title}).sort("timestamp", -1)
+            history = collection.find({"grid_title": title}).sort("timestamp", -1).limit(10)
             history_list = list(history)
             
             if history_list:
@@ -192,7 +192,7 @@ def display_job_grid(data, title):
                 # 創建選擇框
                 selected_index = st.selectbox(
                     "選擇歷史記錄",
-                    options=range(len(history_list))[:10], # 只保留前 10 筆
+                    options=range(len(history_list)), # 只保留前 10 筆
                     format_func=lambda i: f"{history_list[i]['timestamp'].strftime('%Y-%m-%d %H:%M')} -\
                         搜尋: {history_list[i]['search_query']}",
                     key=f"history_select_{title}",
