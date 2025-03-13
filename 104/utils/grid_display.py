@@ -108,6 +108,11 @@ def process_term(data, term):
     Returns:
         pd.Series: Boolean mask indicating matches
     """
+    # 檢查是否為 NOT 運算（以 ! 開頭）
+    is_not = term.startswith('!')
+    if is_not:
+        term = term[1:].strip()  # 移除 ! 符號
+    
     # Check if term contains field specification
     if re.search(r'[:：]', term):
         # Split into field and search term
@@ -117,21 +122,22 @@ def process_term(data, term):
         
         if field in data.columns:
             # Search in specified field
-            return data[field].astype(str).str.lower().str.contains(search_term.lower(), na=False)
+            mask = data[field].astype(str).str.lower().str.contains(search_term.lower(), na=False)
+            return ~mask if is_not else mask # 如果是 NOT 運算就使用 ~ 運算子來反轉布林遮罩
         else:
             # If field doesn't exist, search in all columns
             all_fields_mask = False
             for col in data.columns:
                 col_mask = data[col].astype(str).str.lower().str.contains(search_term.lower(), na=False)
                 all_fields_mask = all_fields_mask | col_mask
-            return all_fields_mask
+            return ~all_fields_mask if is_not else all_fields_mask
     else:
         # No field specified, search in all columns
         all_fields_mask = False
         for col in data.columns:
             col_mask = data[col].astype(str).str.lower().str.contains(term.lower(), na=False)
             all_fields_mask = all_fields_mask | col_mask
-        return all_fields_mask
+        return ~all_fields_mask if is_not else all_fields_mask
 
 def display_job_grid(data, title):
     """
@@ -180,8 +186,9 @@ def display_job_grid(data, title):
         col1, col2, col3 = st.columns([5, 5, 1])
         with col1:
             search_query = st.text_input(
-                "搜尋（欄位:搜尋詞&欄位:搜尋詞|欄位:搜尋詞,...）（&為AND）（|為OR）", 
-                f"{st.session_state.get('search_query', '')}"
+                "搜尋 (欄位:搜尋詞) (&為AND) (|為OR) (!為NOT)", 
+                f"{st.session_state.get('search_query', '')}",
+                placeholder="job:數據 | job:ai & address:台北 & !industry:顧問"
             )
         with col2:
             history = collection.find({"grid_title": title}).sort("timestamp", -1).limit(10)
