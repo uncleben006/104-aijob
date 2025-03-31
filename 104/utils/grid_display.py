@@ -211,7 +211,11 @@ def display_job_grid(data, title):
                     st.session_state[f"selected_index_{title}"] = selected_index
                     selected_record = history_list[selected_index]
                     st.session_state["search_query"] = selected_record["search_query"]
-                    st.session_state["exclude_query"] = selected_record["exclude_query"]
+                    if "exclude_query" in selected_record:
+                        st.session_state["exclude_query"] = selected_record["exclude_query"]
+                    else:
+                        # 如果 exclude_query 不存在，設為空字符串或預設值
+                        st.session_state["exclude_query"] = ""
                     st.rerun()
         with col3:
             submit = st.form_submit_button("搜尋")
